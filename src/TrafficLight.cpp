@@ -19,6 +19,13 @@ void MessageQueue<T>::send(T &&msg)
 {
     // FP.4a : The method send should use the mechanisms std::lock_guard<std::mutex> 
     // as well as _condition.notify_one() to add a new message to the queue and afterwards send a notification.
+
+    // perform vector modification under the lock
+    std::lock_guard<std::mutex> uLock(_mutex);
+
+    // add vector to queue
+    _messages.push_back(std::move(msg));
+    _cond.notify_one(); // notify client after pushing new Vehicle into vector
 }
 
 /* Implementation of class "TrafficLight" */
