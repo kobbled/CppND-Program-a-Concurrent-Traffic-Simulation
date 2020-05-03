@@ -11,7 +11,16 @@ T MessageQueue<T>::receive()
 {
     // FP.5a : The method receive should use std::unique_lock<std::mutex> and _condition.wait() 
     // to wait for and receive new messages and pull them from the queue using move semantics. 
-    // The received object should then be returned by the receive function. 
+    // The received object should then be returned by the receive function.
+    // perform queue modification under the lock
+    std::unique_lock<std::mutex> uLock(_mutex);
+    _cond.wait(uLock, [this] { return !_messages.empty(); }); // pass unique lock to condition variable
+
+    // remove last vector element from queue
+    T msg = std::move(_messages.back());
+    _messages.pop_back();
+
+    return msg; // will not be copied due to return value optimization (RVO) in C++ 
 }
 
 template <typename T>
@@ -36,12 +45,19 @@ TrafficLight::TrafficLight()
     _currentPhase = TrafficLightPhase::red;
 }
 
+
 void TrafficLight::waitForGreen()
 {
     // FP.5b : add the implementation of the method waitForGreen, in which an infinite while-loop 
     // runs and repeatedly calls the receive function on the message queue. 
     // Once it receives TrafficLightPhase::green, the method returns.
+    while(true){
+        if(_queue.receive() == TrafficLightPhase::green) break;
+
+    }
+
 }
+
 
 TrafficLightPhase TrafficLight::getCurrentPhase()
 {
@@ -61,7 +77,7 @@ void TrafficLight::cycleThroughPhases()
     // FP.2a : Implement the function with an infinite loop that measures the time between two loop cycles 
     // and toggles the current phase of the traffic light between red and green and sends an update method 
     // to the message queue using move semantics. The cycle duration should be a random value between 4 and 6 seconds. 
-    // Also, the while-loop should use std::this_thread::sleep_for to wait 1ms between two cycles. 
+    // Also, the while-loop should use std::this_thread::sleep_for to wait 1ms between two cycles.
     std::chrono::time_point<std::chrono::system_clock> lastUpdate;
 
     std::random_device rd;
