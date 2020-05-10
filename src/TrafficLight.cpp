@@ -42,7 +42,17 @@ void MessageQueue<T>::send(T &&msg)
 
 TrafficLight::TrafficLight()
 {
-    _currentPhase = TrafficLightPhase::red;
+    std::random_device r;
+    std::mt19937 generator(r());
+    std::uniform_int_distribution<int> distribution(0, 100);
+
+    int num = distribution(generator);
+
+    if(num % 2){
+        _currentPhase = TrafficLightPhase::red;
+    } else {
+        _currentPhase = TrafficLightPhase::green;
+    }
 }
 
 
@@ -80,10 +90,11 @@ void TrafficLight::cycleThroughPhases()
     // Also, the while-loop should use std::this_thread::sleep_for to wait 1ms between two cycles.
     std::chrono::time_point<std::chrono::system_clock> lastUpdate;
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<int> dist(4000, 6000);
-    int cycleDuration = dist(gen);
+    std::random_device r;
+    std::mt19937 generator(r());
+    std::uniform_int_distribution<int> distribution(4000, 6000);
+
+    int cycleDuration = distribution(generator);
 
     //init stop watch
     lastUpdate = std::chrono::system_clock::now();
@@ -106,7 +117,6 @@ void TrafficLight::cycleThroughPhases()
 
             // reset stop watch for next cycle
             lastUpdate = std::chrono::system_clock::now();
-            cycleDuration = dist(gen);
         }
     }
 }
